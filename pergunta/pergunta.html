@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Para Sara 💖</title>
+  <style>
+    :root {
+      --bg: #fff5fb;
+      --card: #ffffff;
+      --text: #2a2a2a;
+      --accent: #ff4d8d;
+      --accent-2: #ff7db3;
+      --shadow: 0 10px 30px rgba(255, 77, 141, 0.15);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Color Emoji", "Apple Color Emoji", sans-serif;
+      background: radial-gradient(1200px 600px at 20% -10%, #ffe1ee 0%, transparent 60%),
+                  radial-gradient(900px 500px at 120% 10%, #ffeaf3 0%, transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(640px, 95vw);
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: clamp(22px, 4vw, 30px);
+      letter-spacing: .3px;
+    }
+
+    .badge {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+      box-shadow: 0 6px 16px rgba(255, 77, 141, 0.25);
+    }
+
+    .question {
+      margin: 18px 0 14px;
+      font-size: clamp(20px, 3.6vw, 26px);
+      font-weight: 700;
+    }
+
+    .playground {
+      position: relative;
+      margin-top: 12px;
+      height: 220px; /* área para o botão fujão correr */
+      border-radius: calc(var(--radius) - 8px);
+      background: linear-gradient(180deg, #fff, #fff9fc);
+      border: 1px solid #ffe1ee;
+      box-shadow: inset 0 0 0 1px #fff, 0 6px 20px rgba(255, 127, 170, 0.08);
+      overflow: hidden;
+    }
+
+    .buttons {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      pointer-events: none; /* os botões em si liberam o clique */
+    }
+
+    .btn {
+      pointer-events: auto;
+      border: 0;
+      padding: 12px 18px;
+      font-size: 16px;
+      border-radius: 999px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+      box-shadow: 0 6px 16px rgba(0,0,0,.06);
+      border: 1px solid #f6cfe0;
+      user-select: none;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+      box-shadow: 0 8px 22px rgba(255, 77, 141, 0.35);
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    /* Corações decorativos */
+    .heart { position: absolute; opacity: .12; font-size: 28px; }
+    .heart.h1 { top: 12px; left: 16px; }
+    .heart.h2 { bottom: 12px; right: 16px; }
+
+    .result {
+      margin-top: 16px;
+      font-size: clamp(18px, 3.4vw, 24px);
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      color: var(--accent);
+    }
+
+    .pop {
+      animation: pop .35s ease;
+    }
+    @keyframes pop {
+      0% { transform: scale(.9); opacity: .6; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Corações flutuantes quando clica em "Sim" */
+    .float-heart {
+      position: absolute;
+      font-size: 22px;
+      animation: floatUp 1.8s ease forwards;
+      pointer-events: none;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.9); opacity: 1; }
+      100% { transform: translateY(-140px) scale(1.2); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="card" aria-live="polite">
+    <div class="title">
+      <span class="badge">Sara</span>
+      <span>Responda uma pergunta 💌</span>
+    </div>
+
+    <div class="question">Eu sou bonito?</div>
+
+    <div class="playground" id="playground">
+      <span class="heart h1">💗</span>
+      <span class="heart h2">💗</span>
+
+      <div class="buttons">
+        <button id="simBtn" class="btn primary" type="button">Sim, muito</button>
+        <button id="naoBtn" class="btn" type="button" aria-label="Não">Não</button>
+      </div>
+    </div>
+
+    <div id="result" class="result"></div>
+  </main>
+
+  <script>
+    const playground = document.getElementById('playground');
+    const simBtn = document.getElementById('simBtn');
+    const naoBtn = document.getElementById('naoBtn');
+    const result = document.getElementById('result');
+
+    // Coloca o botão "Não" como absoluto após primeiro susto para correr pela área
+    function ensureAbsolute() {
+      const style = getComputedStyle(naoBtn);
+      if (style.position !== 'absolute') {
+        const rectBtn = naoBtn.getBoundingClientRect();
+        const rectPlay = playground.getBoundingClientRect();
+        const left = rectBtn.left - rectPlay.left;
+        const top = rectBtn.top - rectPlay.top;
+        naoBtn.style.position = 'absolute';
+        naoBtn.style.left = left + 'px';
+        naoBtn.style.top = top + 'px';
+      }
+    }
+
+    function moveButtonAway(evt) {
+      ensureAbsolute();
+      const playRect = playground.getBoundingClientRect();
+      const btnRect = naoBtn.getBoundingClientRect();
+
+      const maxLeft = playRect.width - btnRect.width - 8;
+      const maxTop = playRect.height - btnRect.height - 8;
+
+      const newLeft = Math.max(6, Math.min(maxLeft, Math.random() * maxLeft));
+      const newTop = Math.max(6, Math.min(maxTop, Math.random() * maxTop));
+
+      naoBtn.style.left = newLeft + 'px';
+      naoBtn.style.top = newTop + 'px';
+    }
+
+    naoBtn.addEventListener('mouseenter', moveButtonAway);
+    naoBtn.addEventListener('pointerdown', moveButtonAway);
+    naoBtn.addEventListener('focus', moveButtonAway);
+
+    naoBtn.addEventListener('touchstart', function(e){
+      e.preventDefault();
+      moveButtonAway(e);
+    }, {passive:false});
+
+    simBtn.addEventListener('click', function(e){
+      result.textContent = 'Sempre soube que você achava isso 😍';
+      result.style.display = 'flex';
+      result.classList.remove('pop');
+      void result.offsetWidth;
+      result.classList.add('pop');
+
+      for (let i = 0; i < 10; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'float-heart';
+        heart.textContent = '💖';
+        const x = 30 + Math.random() * (playground.clientWidth - 60);
+        const y = playground.clientHeight - 40;
+        heart.style.left = x + 'px';
+        heart.style.top = y + 'px';
+        heart.style.transform = `translateY(0) scale(${0.8 + Math.random()*0.6})`;
+        playground.appendChild(heart);
+        setTimeout(() => heart.remove(), 1900);
+      }
+
+      naoBtn.disabled = true;
+      naoBtn.style.opacity = .6;
+    });
+
+    naoBtn.addEventListener('keydown', (e) => {
+      if (['Enter',' '].includes(e.key)) moveButtonAway(e);
+    });
+
+    window.addEventListener('resize', () => {
+      if (getComputedStyle(naoBtn).position === 'absolute') {
+        const playRect = playground.getBoundingClientRect();
+        const btnRect = naoBtn.getBoundingClientRect();
+        const maxLeft = playRect.width - btnRect.width - 8;
+        const maxTop = playRect.height - btnRect.height - 8;
+        const left = Math.min(parseFloat(naoBtn.style.left || 0), maxLeft);
+        const top = Math.min(parseFloat(naoBtn.style.top || 0), maxTop);
+        naoBtn.style.left = Math.max(6, left) + 'px';
+        naoBtn.style.top = Math.max(6, top) + 'px';
+      }
+    });
+  </script>
+</body>
+</html>
